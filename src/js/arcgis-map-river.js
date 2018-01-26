@@ -1,64 +1,11 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.MoveLine = factory());
-}(this, (function () { 'use strict';
+import tool from '../utils/tool';
+import {
+    requestAnimationFrame,
+    cancelAnimationFrame
+} from '../animation/requestAnimationFrame';
 
-var tool = {
-    merge: function merge(settings, defaults) {
-        Object.keys(settings).forEach(function (key) {
-            defaults[key] = settings[key];
-        });
-    },
-    //计算两点间距离
-    getDistance: function getDistance(p1, p2) {
-        return Math.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]));
-    },
-    //判断点是否在线段上
-    containStroke: function containStroke(x0, y0, x1, y1, lineWidth, x, y) {
-        if (lineWidth === 0) {
-            return false;
-        }
-        var _l = lineWidth;
-        var _a = 0;
-        var _b = x0;
-        // Quick reject
-        if (y > y0 + _l && y > y1 + _l || y < y0 - _l && y < y1 - _l || x > x0 + _l && x > x1 + _l || x < x0 - _l && x < x1 - _l) {
-            return false;
-        }
 
-        if (x0 !== x1) {
-            _a = (y0 - y1) / (x0 - x1);
-            _b = (x0 * y1 - x1 * y0) / (x0 - x1);
-        } else {
-            return Math.abs(x - x0) <= _l / 2;
-        }
-        var tmp = _a * x - y + _b;
-        var _s = tmp * tmp / (_a * _a + 1);
-        return _s <= _l / 2 * _l / 2;
-    }
-};
-
-var resolutionScale = function (context) {
-    var devicePixelRatio = window.devicePixelRatio || 1;
-    context.canvas.width = context.canvas.width * devicePixelRatio;
-    context.canvas.height = context.canvas.height * devicePixelRatio;
-    context.canvas.style.width = context.canvas.width / devicePixelRatio + 'px';
-    context.canvas.style.height = context.canvas.height / devicePixelRatio + 'px';
-    context.scale(devicePixelRatio, devicePixelRatio);
-};
-
-var global = typeof window === 'undefined' ? {} : window;
-
-var requestAnimationFrame = global.requestAnimationFrame || global.mozRequestAnimationFrame || global.webkitRequestAnimationFrame || global.msRequestAnimationFrame || function (callback) {
-    return global.setTimeout(callback, 1000 / 60);
-};
-
-var cancelAnimationFrame = global.cancelAnimationFrame || global.mozCancelAnimationFrame || global.webkitCancelAnimationFrame || global.msCancelAnimationFrame || function (id) {
-    clearTimeout(id);
-};
-
-var MoveLine = function MoveLine(map, userOptions) {
+var MoveLine = function (map, userOptions) {
     var self = this;
     self.map = map;
 
@@ -67,7 +14,25 @@ var MoveLine = function MoveLine(map, userOptions) {
         lineWidth: 0.5, //线条宽度
         lineStyle: 'rgb(200, 40, 0)', //线条颜色
         animateLineWidth: 1, //动画线条宽度
-        animateLineStyle: '#ffff00' //动画线条颜色
+        animateLineStyle: '#ffff00', //动画线条颜色
+        // colors: ["#516b91", "#59c4e6", "#edafda", "#93b7e3", "#a5e7f0", "#cbb0e3"]
+        colors: [
+            "#c1232b",
+            "#27727b",
+            "#fcce10",
+            "#e87c25",
+            "#b5c334",
+            "#fe8463",
+            "#9bca63",
+            "#fad860",
+            "#f3a43b",
+            "#60c0dd",
+            "#d7504b",
+            "#c6e579",
+            "#f4e001",
+            "#f0805a",
+            "#26c0c0"
+        ]
     };
 
     self.init(userOptions, options);
@@ -76,13 +41,13 @@ var MoveLine = function MoveLine(map, userOptions) {
     var baseCtx = self.baseCtx = self.options.canvas.getContext("2d");
     var animateCtx = self.animateCtx = self.options.animateCanvas.getContext("2d");
     baseCtx.lineWidth = options.lineWidth;
-};
+}
 
 MoveLine.prototype.init = function (setting, defaults) {
     //合并参数
     tool.merge(setting, defaults);
     this.options = defaults;
-};
+}
 
 MoveLine.prototype.render = function () {
     var self = this;
@@ -94,7 +59,7 @@ MoveLine.prototype.render = function () {
     roadLines.forEach(function (line) {
         line.drawPath(baseCtx, self.map, self.options);
     });
-};
+}
 
 MoveLine.prototype.animate = function () {
     var self = this;
@@ -103,7 +68,7 @@ MoveLine.prototype.animate = function () {
         return;
     }
 
-    animateCtx.fillStyle = "rgba(0,0,0,0.8)";
+    animateCtx.fillStyle = "rgba(0,0,0,0.97)";
     var prev = animateCtx.globalCompositeOperation;
     animateCtx.globalCompositeOperation = "destination-in";
     animateCtx.fillRect(0, 0, self.map.width, self.map.height);
@@ -113,25 +78,13 @@ MoveLine.prototype.animate = function () {
     roadLines.forEach(function (line) {
         line.draw(animateCtx, self.map, self.options);
     });
-};
-
-MoveLine.prototype.adjustSize = function () {
-    var width = this.map.width;
-    var height = this.map.height;
-    this.baseCtx.canvas.width = width;
-    this.baseCtx.canvas.height = height;
-    this.animateCtx.canvas.width = width;
-    this.animateCtx.canvas.height = height;
-    resolutionScale(this.baseCtx);
-    resolutionScale(this.animateCtx);
-};
+}
 
 MoveLine.prototype.start = function () {
     var self = this;
     self.stop();
-    self.adjustSize();
     self.addLine();
-    self.render();
+    // self.render();
     (function drawFrame() {
         self.timer = setTimeout(function () {
             self.animationId = requestAnimationFrame(drawFrame);
@@ -142,7 +95,7 @@ MoveLine.prototype.start = function () {
     //     requestAnimationFrame(drawFrame);
     //     self.animate();
     // })();
-};
+}
 
 MoveLine.prototype.stop = function () {
     var self = this;
@@ -150,22 +103,25 @@ MoveLine.prototype.stop = function () {
     if (self.timer) {
         clearTimeout(self.timer);
     }
-};
+}
 
 MoveLine.prototype.addLine = function () {
+    var options = this.options;
     var roadLines = this.roadLines = [],
         dataset = this.options.data;
     dataset.forEach(function (line, i) {
         roadLines.push(new Line({
-            points: line
+            points: line,
+            color: options.colors[Math.floor(Math.random() * options.colors.length)]
         }));
     });
-};
+}
 
 function Line(options) {
     this.points = options.points || [];
     this.age = options.age || 0;
     this.maxAge = options.maxAge || 0;
+    this.color = options.color || '#ffff00';
 }
 
 Line.prototype.getPointList = function (map) {
@@ -176,11 +132,11 @@ Line.prototype.getPointList = function (map) {
             path.push({
                 pixel: map.toScreen(p)
             });
-        });
+        })
         this.maxAge = path.length;
     }
     return path;
-};
+}
 
 Line.prototype.drawPath = function (context, map, options) {
     var pointList = this.path || this.getPointList(map);
@@ -192,13 +148,13 @@ Line.prototype.drawPath = function (context, map, options) {
         context.lineTo(pointList[i].pixel.x, pointList[i].pixel.y);
     }
     context.stroke();
-};
+}
 
 Line.prototype.draw = function (context, map, options) {
     var pointList = this.path || this.getPointList(map);
     context.beginPath();
     context.lineWidth = options.animateLineWidth;
-    context.strokeStyle = options.animateLineStyle;
+    context.strokeStyle = this.color;
     if (this.age >= this.maxAge - 1) {
         this.age = 0;
     }
@@ -207,8 +163,10 @@ Line.prototype.draw = function (context, map, options) {
     context.stroke();
 
     this.age++;
-};
+}
 
-return MoveLine;
+Line.prototype.drawCircle = function (context, map, options) {
 
-})));
+}
+
+export default MoveLine;

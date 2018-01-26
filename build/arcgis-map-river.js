@@ -39,15 +39,6 @@ var tool = {
     }
 };
 
-var resolutionScale = function (context) {
-    var devicePixelRatio = window.devicePixelRatio || 1;
-    context.canvas.width = context.canvas.width * devicePixelRatio;
-    context.canvas.height = context.canvas.height * devicePixelRatio;
-    context.canvas.style.width = context.canvas.width / devicePixelRatio + 'px';
-    context.canvas.style.height = context.canvas.height / devicePixelRatio + 'px';
-    context.scale(devicePixelRatio, devicePixelRatio);
-};
-
 var global = typeof window === 'undefined' ? {} : window;
 
 var requestAnimationFrame = global.requestAnimationFrame || global.mozRequestAnimationFrame || global.webkitRequestAnimationFrame || global.msRequestAnimationFrame || function (callback) {
@@ -67,7 +58,9 @@ var MoveLine = function MoveLine(map, userOptions) {
         lineWidth: 0.5, //线条宽度
         lineStyle: 'rgb(200, 40, 0)', //线条颜色
         animateLineWidth: 1, //动画线条宽度
-        animateLineStyle: '#ffff00' //动画线条颜色
+        animateLineStyle: '#ffff00', //动画线条颜色
+        // colors: ["#516b91", "#59c4e6", "#edafda", "#93b7e3", "#a5e7f0", "#cbb0e3"]
+        colors: ["#c1232b", "#27727b", "#fcce10", "#e87c25", "#b5c334", "#fe8463", "#9bca63", "#fad860", "#f3a43b", "#60c0dd", "#d7504b", "#c6e579", "#f4e001", "#f0805a", "#26c0c0"]
     };
 
     self.init(userOptions, options);
@@ -103,7 +96,7 @@ MoveLine.prototype.animate = function () {
         return;
     }
 
-    animateCtx.fillStyle = "rgba(0,0,0,0.8)";
+    animateCtx.fillStyle = "rgba(0,0,0,0.97)";
     var prev = animateCtx.globalCompositeOperation;
     animateCtx.globalCompositeOperation = "destination-in";
     animateCtx.fillRect(0, 0, self.map.width, self.map.height);
@@ -115,23 +108,11 @@ MoveLine.prototype.animate = function () {
     });
 };
 
-MoveLine.prototype.adjustSize = function () {
-    var width = this.map.width;
-    var height = this.map.height;
-    this.baseCtx.canvas.width = width;
-    this.baseCtx.canvas.height = height;
-    this.animateCtx.canvas.width = width;
-    this.animateCtx.canvas.height = height;
-    resolutionScale(this.baseCtx);
-    resolutionScale(this.animateCtx);
-};
-
 MoveLine.prototype.start = function () {
     var self = this;
     self.stop();
-    self.adjustSize();
     self.addLine();
-    self.render();
+    // self.render();
     (function drawFrame() {
         self.timer = setTimeout(function () {
             self.animationId = requestAnimationFrame(drawFrame);
@@ -153,11 +134,13 @@ MoveLine.prototype.stop = function () {
 };
 
 MoveLine.prototype.addLine = function () {
+    var options = this.options;
     var roadLines = this.roadLines = [],
         dataset = this.options.data;
     dataset.forEach(function (line, i) {
         roadLines.push(new Line({
-            points: line
+            points: line,
+            color: options.colors[Math.floor(Math.random() * options.colors.length)]
         }));
     });
 };
@@ -166,6 +149,7 @@ function Line(options) {
     this.points = options.points || [];
     this.age = options.age || 0;
     this.maxAge = options.maxAge || 0;
+    this.color = options.color || '#ffff00';
 }
 
 Line.prototype.getPointList = function (map) {
@@ -198,7 +182,7 @@ Line.prototype.draw = function (context, map, options) {
     var pointList = this.path || this.getPointList(map);
     context.beginPath();
     context.lineWidth = options.animateLineWidth;
-    context.strokeStyle = options.animateLineStyle;
+    context.strokeStyle = this.color;
     if (this.age >= this.maxAge - 1) {
         this.age = 0;
     }
@@ -208,6 +192,8 @@ Line.prototype.draw = function (context, map, options) {
 
     this.age++;
 };
+
+Line.prototype.drawCircle = function (context, map, options) {};
 
 return MoveLine;
 
