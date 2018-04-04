@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>arcgis map river</title>
+    <title>arcgis map moveRiver</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
@@ -29,7 +29,7 @@
             }]
         };
     </script>
-    <script type="text/javascript" src="../build/arcgis-map-river.js"></script>
+    <script type="text/javascript" src="../build/arcgis-map-moveRiver.js"></script>
     <script src="https://js.arcgis.com/3.23/"></script>
 </head>
 
@@ -37,18 +37,18 @@
     <div id="mapCanvas">
     </div>
     <script>
-        var map, rasterLayer, moveline;
+        var map, rasterLayer, moveRiver;
         var canvasSupport;
         require(["esri/map",
-            "esri/request",
-            "dojo/parser",
-            "dojo/number",
-            "dojo/json",
-            "esri/geometry/Point",
-            // "extend/TDTTilesLayer",
-            "extend/RasterLayer",
-            "dojo/domReady!"
-        ],
+                "esri/request",
+                "dojo/parser",
+                "dojo/number",
+                "dojo/json",
+                "esri/geometry/Point",
+                // "extend/TDTTilesLayer",
+                "extend/RasterLayer",
+                "dojo/domReady!"
+            ],
             function (Map,
                 esriRequest,
                 parser,
@@ -61,7 +61,7 @@
                 parser.parse();
                 canvasSupport = supports_canvas();
                 map = new Map("mapCanvas", {
-                    center: [103.791, 30.639],
+                    center: [114.0873634815216, 30.383849143981934],
                     zoom: 9,
                     basemap: "dark-gray-vector",
                 });
@@ -82,11 +82,11 @@
                         // map.addLayers([vec_c, cva_c, baseLayer, animateLayer]);
                         map.addLayers([baseLayer, animateLayer]);
                         map.on("extent-change", redraw);
-                        map.on("resize", function () { });
+                        map.on("resize", function () {});
                         map.on("zoom-start", redraw);
                         map.on("pan-start", redraw);
                         var layersRequest = esriRequest({
-                            url: 'data/river-line.json',
+                            url: 'data/heliu.json',
                             content: {},
                             handleAs: "json"
                         });
@@ -97,23 +97,23 @@
                                     var feature = response.features[i];
                                     var attribute = feature.attributes;
                                     var geometry = feature.geometry;
-                                    var lnglats = [];
-                                    for (var j = 0; j < geometry.paths[0].length; j++) {
-                                        var point = geometry.paths[0][j];
-                                        lnglats.push(new Point({
-                                            "x": point[0],
-                                            "y": point[1],
-                                            "spatialReference": {
-                                                "wkid": 4326
-                                            }
-                                        }));
+                                    for (var j = 0; j < geometry.rings.length; j++) {
+                                        var lnglats = [];
+                                        var points = geometry.rings[j];
+                                        points.forEach(function (point) {
+                                            lnglats.push(new Point({
+                                                "x": point[0],
+                                                "y": point[1],
+                                                "spatialReference": {
+                                                    "wkid": 4326
+                                                }
+                                            }));
+                                        });
+                                        lines.push(lnglats);
                                     }
-                                    lines.push(lnglats);
                                 }
-                                moveline = new MoveLine(map, {
-                                    type: 'arrow', //点或箭头,point,arrow
-                                    isShowBaseLine: true, //是否显示底层线条
-                                    lineWidth: .5, //线条宽度
+                                moveRiver = new MoveRiver(map, {
+                                    lineWidth: 1, //线条宽度
                                     lineStyle: '#C82800', //线条颜色
                                     animateLineWidth: 2, //动画线条宽度
                                     animateLineStyle: '#ffff00', //动画线条颜色
@@ -142,7 +142,7 @@
                     baseLayer._element.height = map.height;
                     animateLayer._element.width = map.width;
                     animateLayer._element.height = map.height;
-                    moveline.start();
+                    moveRiver.start();
                 }
             });
     </script>
