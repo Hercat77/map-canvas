@@ -45,11 +45,19 @@ var demos = [{
 }, {
     src: 'arcgis-map-river.js',
     name: 'MoveLine',
-    build: true
+    build: false
 }, {
     src: 'arcgis-map-moveRiver.js',
     name: 'MoveRiver',
     build: false
+}, {
+    src: 'arcgis-map-riverwind.js',
+    name: 'Windy',
+    build: false
+}, {
+    src: 'arcgis-map-branchRiver.js',
+    name: 'BranchRiver',
+    build: true
 }];
 
 var module;
