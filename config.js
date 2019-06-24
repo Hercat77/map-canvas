@@ -61,7 +61,27 @@ var demos = [{
 }, {
     src: 'baidu-map-lineGradient.js',
     name: 'LineGradient',
+    build: false
+}, {
+    src: 'arcgis-map-lineGradient.js',
+    name: 'LineGradient',
+    build: false
+}, {
+    src: 'arcgis-map-temperature.js',
+    name: 'Temperature',
+    build: false
+}, {
+    src: 'amap-flashMarker.js',
+    name: 'FlashMarker',
     build: true
+}, {
+    src: 'arcgis-map-lidar.js',
+    name: 'Lidar',
+    build: false
+}, {
+    src: 'arcgis-map-ring.js',
+    name: 'Ring',
+    build: false
 }];
 
 var module;
